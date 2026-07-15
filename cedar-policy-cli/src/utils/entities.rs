@@ -17,22 +17,33 @@
 use std::path::Path;
 
 use cedar_policy::{Entities, Schema};
+use clap::ValueEnum;
 use miette::{IntoDiagnostic, Result, WrapErr};
 
-/// Load an `Entities` object from the given filename and optional schema.
+/// Format for entity data files
+#[derive(Debug, Default, Clone, Copy, ValueEnum)]
+pub enum EntitiesFormat {
+    /// JSON entity format (default)
+    #[default]
+    Json,
+    /// Cedar entity data syntax (RFC 104)
+    Cedar,
+}
+
+/// Load an `Entities` object from the given filename, format, and optional schema.
 ///
-/// Supports both JSON format (`.json` extension or default) and Cedar entity
-/// data syntax (`.cedarentities` extension).
+/// If format is `Json`, parses as JSON. If format is `Cedar`, parses as
+/// Cedar entity data syntax.
 pub(crate) fn load_entities(
     entities_filename: impl AsRef<Path>,
+    format: EntitiesFormat,
     schema: Option<&Schema>,
 ) -> Result<Entities> {
     let path = entities_filename.as_ref();
-    let extension = path.extension().and_then(|e| e.to_str());
 
-    match extension {
-        Some("cedarentities") => load_cedar_entities(path, schema),
-        _ => load_json_entities(path, schema),
+    match format {
+        EntitiesFormat::Cedar => load_cedar_entities(path, schema),
+        EntitiesFormat::Json => load_json_entities(path, schema),
     }
 }
 
@@ -47,7 +58,7 @@ fn load_json_entities(path: &Path, schema: Option<&Schema>) -> Result<Entities> 
         .wrap_err_with(|| format!("failed to parse entities from file {}", path.display()))
 }
 
-/// Load entities from a Cedar entity data syntax file (.cedarentities)
+/// Load entities from a Cedar entity data syntax file
 fn load_cedar_entities(path: &Path, schema: Option<&Schema>) -> Result<Entities> {
     let src = std::fs::read_to_string(path)
         .into_diagnostic()
@@ -66,7 +77,7 @@ mod tests {
     fn error_on_invalid_entity_data() {
         let mut f = tempfile::NamedTempFile::new().unwrap();
         f.write_all(b"not valid json").unwrap();
-        let err = load_entities(f.path(), None).unwrap_err();
+        let err = load_entities(f.path(), EntitiesFormat::Json, None).unwrap_err();
         insta::with_settings!({filters => vec![TEMPFILE_FILTER]}, {
             insta::assert_snapshot!(render_err(&err), @r"
             × failed to parse entities from file <TEMPFILE>
@@ -82,7 +93,7 @@ mod tests {
         let mut f = tempfile::NamedTempFile::new().unwrap();
         f.write_all(br#"[{"uid":{"__entity":{"type":"Album","id":"a"}},"attrs":{},"parents":[]}]"#)
             .unwrap();
-        let err = load_entities(f.path(), Some(&schema)).unwrap_err();
+        let err = load_entities(f.path(), EntitiesFormat::Json, Some(&schema)).unwrap_err();
         insta::with_settings!({filters => vec![TEMPFILE_FILTER]}, {
             insta::assert_snapshot!(render_err(&err), @r#"
             × failed to parse entities from file <TEMPFILE>
@@ -94,7 +105,9 @@ mod tests {
 
     #[test]
     fn error_on_missing_entity_file() {
-        let err = load_entities("/tmp/nonexistent_cedar_test_file.json", None).unwrap_err();
+        let err =
+            load_entities("/tmp/nonexistent_cedar_test_file.json", EntitiesFormat::Json, None)
+                .unwrap_err();
         insta::assert_snapshot!(render_err(&err), @r"
         × failed to open entities file /tmp/nonexistent_cedar_test_file.json
         ╰─▶ No such file or directory (os error 2)
@@ -103,26 +116,19 @@ mod tests {
 
     #[test]
     fn load_cedar_entities_file() {
-        let mut f = tempfile::Builder::new()
-            .suffix(".cedarentities")
-            .tempfile()
-            .unwrap();
+        let mut f = tempfile::NamedTempFile::new().unwrap();
         f.write_all(br#"instance User::"alice"; instance User::"bob";"#)
             .unwrap();
-        let entities = load_entities(f.path(), None).unwrap();
+        let entities = load_entities(f.path(), EntitiesFormat::Cedar, None).unwrap();
         assert_eq!(entities.iter().count(), 2);
     }
 
     #[test]
     fn error_on_invalid_cedar_entities() {
-        let mut f = tempfile::Builder::new()
-            .suffix(".cedarentities")
-            .tempfile()
-            .unwrap();
+        let mut f = tempfile::NamedTempFile::new().unwrap();
         f.write_all(b"this is not valid cedar entity syntax $$$$")
             .unwrap();
-        let err = load_entities(f.path(), None).unwrap_err();
-        // Should show a Cedar syntax error, not a JSON error
+        let err = load_entities(f.path(), EntitiesFormat::Cedar, None).unwrap_err();
         let rendered = render_err(&err);
         assert!(
             rendered.contains("failed to parse entities from file"),

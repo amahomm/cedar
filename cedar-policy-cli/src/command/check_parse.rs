@@ -20,7 +20,7 @@ use cedar_policy::Expression;
 use clap::Args;
 use miette::Report;
 
-use crate::{load_entities, CedarExitCode, OptionalPoliciesArgs, OptionalSchemaArgs, PoliciesArgs};
+use crate::{load_entities, CedarExitCode, EntitiesFormat, OptionalPoliciesArgs, OptionalSchemaArgs, PoliciesArgs};
 
 #[derive(Args, Debug)]
 pub struct CheckParseArgs {
@@ -33,9 +33,12 @@ pub struct CheckParseArgs {
     /// Schema args (incorporated by reference)
     #[command(flatten)]
     pub schema: OptionalSchemaArgs,
-    /// File containing JSON representation of a Cedar entity hierarchy
+    /// File containing a Cedar entity hierarchy
     #[arg(long = "entities", value_name = "FILE")]
     pub entities_file: Option<PathBuf>,
+    /// Entities format
+    #[arg(long, value_enum, default_value_t)]
+    pub entities_format: EntitiesFormat,
 }
 
 pub fn check_parse(args: &CheckParseArgs) -> CedarExitCode {
@@ -88,7 +91,7 @@ pub fn check_parse(args: &CheckParseArgs) -> CedarExitCode {
     if let Some(e) = args
         .entities_file
         .as_ref()
-        .and_then(|e| load_entities(e, schema.as_ref()).err())
+        .and_then(|e| load_entities(e, args.entities_format, schema.as_ref()).err())
     {
         println!("{e:?}");
         exit_code = CedarExitCode::Failure;

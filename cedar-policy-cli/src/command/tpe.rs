@@ -40,7 +40,7 @@ pub struct TpeArgs {
     /// parsing of entity hierarchy, if present
     #[command(flatten)]
     pub schema: SchemaArgs,
-    /// File containing JSON representation of the Cedar entity hierarchy
+    /// File containing a Cedar entity hierarchy (JSON format)
     #[arg(long = "entities", value_name = "FILE")]
     pub entities_file: String,
     /// Time authorization and report timing information

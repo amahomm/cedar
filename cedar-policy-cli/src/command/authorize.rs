@@ -20,7 +20,7 @@ use cedar_policy::{Authorizer, Decision, Entities, PolicySet, Response};
 use clap::Args;
 use miette::Report;
 
-use crate::{load_entities, CedarExitCode, OptionalSchemaArgs, PoliciesArgs, RequestArgs};
+use crate::{load_entities, CedarExitCode, EntitiesFormat, OptionalSchemaArgs, PoliciesArgs, RequestArgs};
 
 #[derive(Args, Debug)]
 pub struct AuthorizeArgs {
@@ -36,9 +36,12 @@ pub struct AuthorizeArgs {
     /// parsing of entity hierarchy, if present
     #[command(flatten)]
     pub schema: OptionalSchemaArgs,
-    /// File containing JSON representation of the Cedar entity hierarchy
+    /// File containing a Cedar entity hierarchy
     #[arg(long = "entities", value_name = "FILE")]
     pub entities_file: String,
+    /// Entities format
+    #[arg(long, value_enum, default_value_t)]
+    pub entities_format: EntitiesFormat,
     /// More verbose output. (For instance, indicate which policies applied to the request, if any.)
     #[arg(short, long)]
     pub verbose: bool,
@@ -53,6 +56,7 @@ pub fn authorize(args: &AuthorizeArgs) -> CedarExitCode {
         &args.request,
         &args.policies,
         &args.entities_file,
+        args.entities_format,
         &args.schema,
         args.timing,
     );
@@ -102,6 +106,7 @@ fn execute_request(
     request: &RequestArgs,
     policies: &PoliciesArgs,
     entities_filename: impl AsRef<Path>,
+    entities_format: EntitiesFormat,
     schema: &OptionalSchemaArgs,
     compute_duration: bool,
 ) -> Result<Response, Vec<Report>> {
@@ -120,7 +125,7 @@ fn execute_request(
             None
         }
     };
-    let entities = match load_entities(entities_filename, schema.as_ref()) {
+    let entities = match load_entities(entities_filename, entities_format, schema.as_ref()) {
         Ok(entities) => entities,
         Err(e) => {
             errs.push(e);
