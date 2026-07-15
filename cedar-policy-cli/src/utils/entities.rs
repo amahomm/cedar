@@ -19,27 +19,41 @@ use std::path::Path;
 use cedar_policy::{Entities, Schema};
 use miette::{IntoDiagnostic, Result, WrapErr};
 
-/// Load an `Entities` object from the given JSON filename and optional schema.
+/// Load an `Entities` object from the given filename and optional schema.
+///
+/// Supports both JSON format (`.json` extension or default) and Cedar entity
+/// data syntax (`.cedarentities` extension).
 pub(crate) fn load_entities(
     entities_filename: impl AsRef<Path>,
     schema: Option<&Schema>,
 ) -> Result<Entities> {
+    let path = entities_filename.as_ref();
+    let extension = path.extension().and_then(|e| e.to_str());
+
+    match extension {
+        Some("cedarentities") => load_cedar_entities(path, schema),
+        _ => load_json_entities(path, schema),
+    }
+}
+
+/// Load entities from a JSON file
+fn load_json_entities(path: &Path, schema: Option<&Schema>) -> Result<Entities> {
     let f = std::fs::OpenOptions::new()
         .read(true)
-        .open(entities_filename.as_ref())
+        .open(path)
         .into_diagnostic()
-        .wrap_err_with(|| {
-            format!(
-                "failed to open entities file {}",
-                entities_filename.as_ref().display()
-            )
-        })?;
-    Entities::from_json_file(f, schema).wrap_err_with(|| {
-        format!(
-            "failed to parse entities from file {}",
-            entities_filename.as_ref().display()
-        )
-    })
+        .wrap_err_with(|| format!("failed to open entities file {}", path.display()))?;
+    Entities::from_json_file(f, schema)
+        .wrap_err_with(|| format!("failed to parse entities from file {}", path.display()))
+}
+
+/// Load entities from a Cedar entity data syntax file (.cedarentities)
+fn load_cedar_entities(path: &Path, schema: Option<&Schema>) -> Result<Entities> {
+    let src = std::fs::read_to_string(path)
+        .into_diagnostic()
+        .wrap_err_with(|| format!("failed to read entities file {}", path.display()))?;
+    Entities::from_cedar_str(&src, schema)
+        .wrap_err_with(|| format!("failed to parse entities from file {}", path.display()))
 }
 
 #[cfg(test)]
@@ -85,5 +99,34 @@ mod tests {
         × failed to open entities file /tmp/nonexistent_cedar_test_file.json
         ╰─▶ No such file or directory (os error 2)
         ");
+    }
+
+    #[test]
+    fn load_cedar_entities_file() {
+        let mut f = tempfile::Builder::new()
+            .suffix(".cedarentities")
+            .tempfile()
+            .unwrap();
+        f.write_all(br#"instance User::"alice"; instance User::"bob";"#)
+            .unwrap();
+        let entities = load_entities(f.path(), None).unwrap();
+        assert_eq!(entities.iter().count(), 2);
+    }
+
+    #[test]
+    fn error_on_invalid_cedar_entities() {
+        let mut f = tempfile::Builder::new()
+            .suffix(".cedarentities")
+            .tempfile()
+            .unwrap();
+        f.write_all(b"this is not valid cedar entity syntax $$$$")
+            .unwrap();
+        let err = load_entities(f.path(), None).unwrap_err();
+        // Should show a Cedar syntax error, not a JSON error
+        let rendered = render_err(&err);
+        assert!(
+            rendered.contains("failed to parse entities from file"),
+            "Expected error message, got: {rendered}"
+        );
     }
 }

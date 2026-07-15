@@ -1,0 +1,128 @@
+// Photo sharing application entities
+
+namespace PhotoApp {
+    // Users and groups
+    instance User::"alice" in [Group::"admins", Group::"photographers"] = {
+        "name": "Alice Anderson",
+        "email": "alice@example.com",
+        "age": 30,
+        "active": true,
+        "profile": {
+            "bio": "Photography enthusiast",
+            "joined": datetime("2024-06-15T00:00:00Z"),
+            "avatar": Photo::"alice_avatar.png"
+        }
+    };
+
+    instance User::"bob" in Group::"viewers" = {
+        "name": "Bob Builder",
+        "email": "bob@example.com",
+        "age": 25,
+        "active": true,
+        "profile": {
+            "bio": "",
+            "joined": datetime("2025-01-01T12:00:00Z"),
+            "avatar": Photo::"default_avatar.png"
+        }
+    };
+
+    instance Group::"admins" = {
+        "description": "Full system access"
+    };
+
+    instance Group::"photographers" in Group::"viewers" = {
+        "description": "Can upload and manage photos"
+    };
+
+    instance Group::"viewers" = {
+        "description": "Read-only access"
+    };
+
+    // Photos and albums
+    instance Photo::"sunset_beach.jpg" in Album::"vacation_2025" = {
+        "title": "Sunset at the Beach",
+        "size": 4500000,
+        "dimensions": { "width": 4032, "height": 3024 },
+        "taken_at": datetime("2025-07-20T19:45:00Z"),
+        "camera": "Canon EOS R5",
+        "public": true,
+        "owner": User::"alice"
+    } tags {
+        "location": "Maui, Hawaii",
+        "category": "landscape",
+        "rating": 5
+    };
+
+    instance Photo::"family_dinner.jpg" in Album::"personal" = {
+        "title": "Family Dinner",
+        "size": 2100000,
+        "dimensions": { "width": 3024, "height": 4032 },
+        "taken_at": datetime("2025-12-25T18:30:00Z"),
+        "camera": "iPhone 15",
+        "public": false,
+        "owner": User::"alice"
+    } tags {
+        "location": "Home",
+        "category": "people"
+    };
+
+    instance Photo::"alice_avatar.png" = {
+        "title": "Alice Avatar",
+        "size": 50000,
+        "dimensions": { "width": 256, "height": 256 },
+        "public": true,
+        "owner": User::"alice"
+    };
+
+    instance Photo::"default_avatar.png" = {
+        "title": "Default Avatar",
+        "size": 10000,
+        "dimensions": { "width": 128, "height": 128 },
+        "public": true,
+        "owner": User::"alice"
+    };
+
+    instance Album::"vacation_2025" in Account::"alice_account" = {
+        "title": "Vacation 2025",
+        "cover_photo": Photo::"sunset_beach.jpg",
+        "created": datetime("2025-07-15T00:00:00Z"),
+        "shared_with": [User::"bob"]
+    };
+
+    instance Album::"personal" in Account::"alice_account" = {
+        "title": "Personal",
+        "created": datetime("2024-01-01T00:00:00Z"),
+        "shared_with": []
+    };
+
+    instance Account::"alice_account" = {
+        "owner": User::"alice",
+        "plan": "premium",
+        "storage_used": 6650000
+    };
+
+    // Actions
+    instance Action::"view";
+    instance Action::"upload" in Action::"manage";
+    instance Action::"delete" in Action::"manage";
+    instance Action::"share" in Action::"manage";
+    instance Action::"manage";
+}
+
+namespace Network {
+    instance Subnet::"office" = {
+        "cidr": ip("10.0.0.0/16"),
+        "name": "Office Network"
+    };
+
+    instance Subnet::"vpn" = {
+        "cidr": ip("172.16.0.0/12"),
+        "name": "VPN Range"
+    };
+
+    instance AccessPolicy::"office_only" = {
+        "allowed_subnets": [ip("10.0.0.0/16"), ip("172.16.0.0/12")],
+        "max_session": duration("8h"),
+        "require_mfa": true
+    };
+}

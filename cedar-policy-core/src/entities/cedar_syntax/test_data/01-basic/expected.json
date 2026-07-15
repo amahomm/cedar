@@ -1,0 +1,32 @@
+[
+    {
+        "uid": { "type": "User", "id": "alice" },
+        "attrs": {},
+        "parents": []
+    },
+    {
+        "uid": { "type": "User", "id": "bob" },
+        "attrs": {},
+        "parents": []
+    },
+    {
+        "uid": { "type": "Action", "id": "view" },
+        "attrs": {},
+        "parents": []
+    },
+    {
+        "uid": { "type": "Action", "id": "edit" },
+        "attrs": {},
+        "parents": []
+    },
+    {
+        "uid": { "type": "Photo", "id": "vacation.jpg" },
+        "attrs": {},
+        "parents": []
+    },
+    {
+        "uid": { "type": "Album", "id": "summer_trip" },
+        "attrs": {},
+        "parents": []
+    }
+]

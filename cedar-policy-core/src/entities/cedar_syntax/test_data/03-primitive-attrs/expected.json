@@ -1,0 +1,38 @@
+[
+    {
+        "uid": { "type": "User", "id": "alice" },
+        "attrs": {
+            "name": "Alice Anderson",
+            "age": 30,
+            "active": true,
+            "department": "Engineering",
+            "level": -1
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "User", "id": "bob" },
+        "attrs": {
+            "name": "Bob Builder",
+            "age": 25,
+            "active": false,
+            "department": "Sales",
+            "level": 3
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "User", "id": "empty" },
+        "attrs": {},
+        "parents": []
+    },
+    {
+        "uid": { "type": "Photo", "id": "doc.pdf" },
+        "attrs": {
+            "title": "Quarterly Report",
+            "size": 1048576,
+            "public": false
+        },
+        "parents": []
+    }
+]

@@ -1,0 +1,23 @@
+instance User::"alice" = {
+    "name": "Alice Anderson",
+    "age": 30,
+    "active": true,
+    "department": "Engineering",
+    "level": -1
+};
+
+instance User::"bob" {
+    "name": "Bob Builder",
+    "age": 25,
+    "active": false,
+    "department": "Sales",
+    "level": 3
+};
+
+instance User::"empty" = {};
+
+instance Photo::"doc.pdf" = {
+    "title": "Quarterly Report",
+    "size": 1048576,
+    "public": false
+};

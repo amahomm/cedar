@@ -1,0 +1,214 @@
+[
+    {
+        "uid": { "type": "PhotoApp::User", "id": "alice" },
+        "attrs": {
+            "name": "Alice Anderson",
+            "email": "alice@example.com",
+            "age": 30,
+            "active": true,
+            "profile": {
+                "bio": "Photography enthusiast",
+                "joined": { "__extn": { "fn": "datetime", "arg": "2024-06-15T00:00:00Z" } },
+                "avatar": { "__entity": { "type": "PhotoApp::Photo", "id": "alice_avatar.png" } }
+            }
+        },
+        "parents": [
+            { "type": "PhotoApp::Group", "id": "admins" },
+            { "type": "PhotoApp::Group", "id": "photographers" }
+        ]
+    },
+    {
+        "uid": { "type": "PhotoApp::User", "id": "bob" },
+        "attrs": {
+            "name": "Bob Builder",
+            "email": "bob@example.com",
+            "age": 25,
+            "active": true,
+            "profile": {
+                "bio": "",
+                "joined": { "__extn": { "fn": "datetime", "arg": "2025-01-01T12:00:00Z" } },
+                "avatar": { "__entity": { "type": "PhotoApp::Photo", "id": "default_avatar.png" } }
+            }
+        },
+        "parents": [
+            { "type": "PhotoApp::Group", "id": "viewers" }
+        ]
+    },
+    {
+        "uid": { "type": "PhotoApp::Group", "id": "admins" },
+        "attrs": {
+            "description": "Full system access"
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "PhotoApp::Group", "id": "photographers" },
+        "attrs": {
+            "description": "Can upload and manage photos"
+        },
+        "parents": [
+            { "type": "PhotoApp::Group", "id": "viewers" }
+        ]
+    },
+    {
+        "uid": { "type": "PhotoApp::Group", "id": "viewers" },
+        "attrs": {
+            "description": "Read-only access"
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "PhotoApp::Photo", "id": "sunset_beach.jpg" },
+        "attrs": {
+            "title": "Sunset at the Beach",
+            "size": 4500000,
+            "dimensions": { "width": 4032, "height": 3024 },
+            "taken_at": { "__extn": { "fn": "datetime", "arg": "2025-07-20T19:45:00Z" } },
+            "camera": "Canon EOS R5",
+            "public": true,
+            "owner": { "__entity": { "type": "PhotoApp::User", "id": "alice" } }
+        },
+        "parents": [
+            { "type": "PhotoApp::Album", "id": "vacation_2025" }
+        ],
+        "tags": {
+            "location": "Maui, Hawaii",
+            "category": "landscape",
+            "rating": 5
+        }
+    },
+    {
+        "uid": { "type": "PhotoApp::Photo", "id": "family_dinner.jpg" },
+        "attrs": {
+            "title": "Family Dinner",
+            "size": 2100000,
+            "dimensions": { "width": 3024, "height": 4032 },
+            "taken_at": { "__extn": { "fn": "datetime", "arg": "2025-12-25T18:30:00Z" } },
+            "camera": "iPhone 15",
+            "public": false,
+            "owner": { "__entity": { "type": "PhotoApp::User", "id": "alice" } }
+        },
+        "parents": [
+            { "type": "PhotoApp::Album", "id": "personal" }
+        ],
+        "tags": {
+            "location": "Home",
+            "category": "people"
+        }
+    },
+    {
+        "uid": { "type": "PhotoApp::Photo", "id": "alice_avatar.png" },
+        "attrs": {
+            "title": "Alice Avatar",
+            "size": 50000,
+            "dimensions": { "width": 256, "height": 256 },
+            "public": true,
+            "owner": { "__entity": { "type": "PhotoApp::User", "id": "alice" } }
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "PhotoApp::Photo", "id": "default_avatar.png" },
+        "attrs": {
+            "title": "Default Avatar",
+            "size": 10000,
+            "dimensions": { "width": 128, "height": 128 },
+            "public": true,
+            "owner": { "__entity": { "type": "PhotoApp::User", "id": "alice" } }
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "PhotoApp::Album", "id": "vacation_2025" },
+        "attrs": {
+            "title": "Vacation 2025",
+            "cover_photo": { "__entity": { "type": "PhotoApp::Photo", "id": "sunset_beach.jpg" } },
+            "created": { "__extn": { "fn": "datetime", "arg": "2025-07-15T00:00:00Z" } },
+            "shared_with": [
+                { "__entity": { "type": "PhotoApp::User", "id": "bob" } }
+            ]
+        },
+        "parents": [
+            { "type": "PhotoApp::Account", "id": "alice_account" }
+        ]
+    },
+    {
+        "uid": { "type": "PhotoApp::Album", "id": "personal" },
+        "attrs": {
+            "title": "Personal",
+            "created": { "__extn": { "fn": "datetime", "arg": "2024-01-01T00:00:00Z" } },
+            "shared_with": []
+        },
+        "parents": [
+            { "type": "PhotoApp::Account", "id": "alice_account" }
+        ]
+    },
+    {
+        "uid": { "type": "PhotoApp::Account", "id": "alice_account" },
+        "attrs": {
+            "owner": { "__entity": { "type": "PhotoApp::User", "id": "alice" } },
+            "plan": "premium",
+            "storage_used": 6650000
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "PhotoApp::Action", "id": "view" },
+        "attrs": {},
+        "parents": []
+    },
+    {
+        "uid": { "type": "PhotoApp::Action", "id": "upload" },
+        "attrs": {},
+        "parents": [
+            { "type": "PhotoApp::Action", "id": "manage" }
+        ]
+    },
+    {
+        "uid": { "type": "PhotoApp::Action", "id": "delete" },
+        "attrs": {},
+        "parents": [
+            { "type": "PhotoApp::Action", "id": "manage" }
+        ]
+    },
+    {
+        "uid": { "type": "PhotoApp::Action", "id": "share" },
+        "attrs": {},
+        "parents": [
+            { "type": "PhotoApp::Action", "id": "manage" }
+        ]
+    },
+    {
+        "uid": { "type": "PhotoApp::Action", "id": "manage" },
+        "attrs": {},
+        "parents": []
+    },
+    {
+        "uid": { "type": "Network::Subnet", "id": "office" },
+        "attrs": {
+            "cidr": { "__extn": { "fn": "ip", "arg": "10.0.0.0/16" } },
+            "name": "Office Network"
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "Network::Subnet", "id": "vpn" },
+        "attrs": {
+            "cidr": { "__extn": { "fn": "ip", "arg": "172.16.0.0/12" } },
+            "name": "VPN Range"
+        },
+        "parents": []
+    },
+    {
+        "uid": { "type": "Network::AccessPolicy", "id": "office_only" },
+        "attrs": {
+            "allowed_subnets": [
+                { "__extn": { "fn": "ip", "arg": "10.0.0.0/16" } },
+                { "__extn": { "fn": "ip", "arg": "172.16.0.0/12" } }
+            ],
+            "max_session": { "__extn": { "fn": "duration", "arg": "8h" } },
+            "require_mfa": true
+        },
+        "parents": []
+    }
+]
