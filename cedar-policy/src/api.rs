@@ -884,6 +884,7 @@ impl Entities {
     /// - [`CedarEntitiesError::ConversionError`] if extension functions are unknown
     /// - [`EntitiesError::Duplicate`] if there are any duplicate entities
     /// - [`EntitiesError::InvalidEntity`] if `schema` is provided and entities do not conform
+    #[cfg(feature = "cedar-entity-syntax")]
     pub fn from_cedar_str(
         src: &str,
         schema: Option<&Schema>,
@@ -974,6 +975,7 @@ impl Entities {
     /// ## Errors
     /// Returns an error if any entity contains residual (unknown) values,
     /// which cannot be represented in Cedar syntax.
+    #[cfg(feature = "cedar-entity-syntax")]
     pub fn to_cedar_string(&self) -> Result<String, CedarEntitiesFormatError> {
         cedar_policy_core::entities::cedar_syntax::fmt::format_entities(&self.0)
             .map_err(CedarEntitiesFormatError)

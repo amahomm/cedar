@@ -40,6 +40,7 @@ pub struct AuthorizeArgs {
     #[arg(long = "entities", value_name = "FILE")]
     pub entities_file: String,
     /// Entities format
+    #[cfg(feature = "cedar-entity-syntax")]
     #[arg(long, value_enum, default_value_t)]
     pub entities_format: EntitiesFormat,
     /// More verbose output. (For instance, indicate which policies applied to the request, if any.)
@@ -52,11 +53,17 @@ pub struct AuthorizeArgs {
 
 pub fn authorize(args: &AuthorizeArgs) -> CedarExitCode {
     println!();
+    let entities_format = {
+        #[cfg(feature = "cedar-entity-syntax")]
+        { args.entities_format }
+        #[cfg(not(feature = "cedar-entity-syntax"))]
+        { EntitiesFormat::default() }
+    };
     let ans = execute_request(
         &args.request,
         &args.policies,
         &args.entities_file,
-        args.entities_format,
+        entities_format,
         &args.schema,
         args.timing,
     );

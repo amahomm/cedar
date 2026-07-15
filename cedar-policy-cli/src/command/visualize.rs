@@ -24,12 +24,19 @@ pub struct VisualizeArgs {
     #[arg(long = "entities", value_name = "FILE")]
     pub entities_file: String,
     /// Entities format
+    #[cfg(feature = "cedar-entity-syntax")]
     #[arg(long, value_enum, default_value_t)]
     pub entities_format: EntitiesFormat,
 }
 
 pub fn visualize(args: &VisualizeArgs) -> CedarExitCode {
-    match load_entities(&args.entities_file, args.entities_format, None) {
+    let format = {
+        #[cfg(feature = "cedar-entity-syntax")]
+        { args.entities_format }
+        #[cfg(not(feature = "cedar-entity-syntax"))]
+        { EntitiesFormat::default() }
+    };
+    match load_entities(&args.entities_file, format, None) {
         Ok(entities) => {
             println!("{}", entities.to_dot_str());
             CedarExitCode::Success

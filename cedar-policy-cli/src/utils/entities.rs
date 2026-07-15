@@ -23,11 +23,12 @@ use miette::{IntoDiagnostic, Result, WrapErr};
 /// Format for entity data files
 #[derive(Debug, Default, Clone, Copy, ValueEnum)]
 pub enum EntitiesFormat {
-    /// JSON entity format (default)
+    /// Cedar entity data syntax (RFC 104)
+    #[cfg(feature = "cedar-entity-syntax")]
+    Cedar,
+    /// JSON entity format
     #[default]
     Json,
-    /// Cedar entity data syntax (RFC 104)
-    Cedar,
 }
 
 /// Load an `Entities` object from the given filename, format, and optional schema.
@@ -42,6 +43,7 @@ pub(crate) fn load_entities(
     let path = entities_filename.as_ref();
 
     match format {
+        #[cfg(feature = "cedar-entity-syntax")]
         EntitiesFormat::Cedar => load_cedar_entities(path, schema),
         EntitiesFormat::Json => load_json_entities(path, schema),
     }
@@ -59,6 +61,7 @@ fn load_json_entities(path: &Path, schema: Option<&Schema>) -> Result<Entities> 
 }
 
 /// Load entities from a Cedar entity data syntax file
+#[cfg(feature = "cedar-entity-syntax")]
 fn load_cedar_entities(path: &Path, schema: Option<&Schema>) -> Result<Entities> {
     let src = std::fs::read_to_string(path)
         .into_diagnostic()
@@ -114,6 +117,7 @@ mod tests {
         ");
     }
 
+    #[cfg(feature = "cedar-entity-syntax")]
     #[test]
     fn load_cedar_entities_file() {
         let mut f = tempfile::NamedTempFile::new().unwrap();
@@ -123,6 +127,7 @@ mod tests {
         assert_eq!(entities.iter().count(), 2);
     }
 
+    #[cfg(feature = "cedar-entity-syntax")]
     #[test]
     fn error_on_invalid_cedar_entities() {
         let mut f = tempfile::NamedTempFile::new().unwrap();

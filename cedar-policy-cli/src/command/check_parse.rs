@@ -37,6 +37,7 @@ pub struct CheckParseArgs {
     #[arg(long = "entities", value_name = "FILE")]
     pub entities_file: Option<PathBuf>,
     /// Entities format
+    #[cfg(feature = "cedar-entity-syntax")]
     #[arg(long, value_enum, default_value_t)]
     pub entities_format: EntitiesFormat,
 }
@@ -91,7 +92,15 @@ pub fn check_parse(args: &CheckParseArgs) -> CedarExitCode {
     if let Some(e) = args
         .entities_file
         .as_ref()
-        .and_then(|e| load_entities(e, args.entities_format, schema.as_ref()).err())
+        .and_then(|e| {
+            let format = {
+                #[cfg(feature = "cedar-entity-syntax")]
+                { args.entities_format }
+                #[cfg(not(feature = "cedar-entity-syntax"))]
+                { EntitiesFormat::default() }
+            };
+            load_entities(e, format, schema.as_ref()).err()
+        })
     {
         println!("{e:?}");
         exit_code = CedarExitCode::Failure;

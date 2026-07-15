@@ -37,6 +37,7 @@ pub struct EvaluateArgs {
     #[arg(long = "entities", value_name = "FILE")]
     pub entities_file: Option<String>,
     /// Entities format
+    #[cfg(feature = "cedar-entity-syntax")]
     #[arg(long, value_enum, default_value_t)]
     pub entities_format: EntitiesFormat,
     /// Expression to evaluate
@@ -70,7 +71,12 @@ pub fn evaluate(args: &EvaluateArgs) -> (CedarExitCode, EvalResult) {
         };
     let entities = match &args.entities_file {
         None => Entities::empty(),
-        Some(file) => match load_entities(file, args.entities_format, schema.as_ref()) {
+        Some(file) => match load_entities(file, {
+            #[cfg(feature = "cedar-entity-syntax")]
+            { args.entities_format }
+            #[cfg(not(feature = "cedar-entity-syntax"))]
+            { EntitiesFormat::default() }
+        }, schema.as_ref()) {
             Ok(entities) => entities,
             Err(e) => {
                 println!("{e:?}");

@@ -58,6 +58,7 @@ pub mod entities_errors {
 }
 
 /// Errors related to parsing entities from Cedar syntax (RFC 104)
+#[cfg(feature = "cedar-entity-syntax")]
 pub mod cedar_entities_errors {
     pub use cedar_policy_core::entities::cedar_syntax::err::{
         ConversionError, ConversionErrors, ParseError, ParseErrors,
@@ -65,6 +66,7 @@ pub mod cedar_entities_errors {
 }
 
 /// Top-level error type for parsing entity data from the Cedar syntax
+#[cfg(feature = "cedar-entity-syntax")]
 #[derive(Debug, Diagnostic, Error)]
 #[non_exhaustive]
 pub enum CedarEntitiesError {
@@ -85,6 +87,7 @@ pub enum CedarEntitiesError {
 }
 
 /// Error type for formatting entities to Cedar syntax
+#[cfg(feature = "cedar-entity-syntax")]
 #[derive(Debug, Error)]
 #[error(transparent)]
 pub struct CedarEntitiesFormatError(

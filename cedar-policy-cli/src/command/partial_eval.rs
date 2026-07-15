@@ -46,6 +46,7 @@ pub struct PartiallyAuthorizeArgs {
     #[arg(long = "entities", value_name = "FILE")]
     pub entities_file: String,
     /// Entities format
+    #[cfg(feature = "cedar-entity-syntax")]
     #[arg(long, value_enum, default_value_t)]
     pub entities_format: EntitiesFormat,
     /// Time authorization and report timing information
@@ -186,11 +187,17 @@ struct PartialRequestJSON {
 
 pub fn partial_authorize(args: &PartiallyAuthorizeArgs) -> CedarExitCode {
     println!();
+    let entities_format = {
+        #[cfg(feature = "cedar-entity-syntax")]
+        { args.entities_format }
+        #[cfg(not(feature = "cedar-entity-syntax"))]
+        { EntitiesFormat::default() }
+    };
     let ans = execute_partial_request(
         &args.request,
         &args.policies,
         &args.entities_file,
-        args.entities_format,
+        entities_format,
         &args.schema,
         args.timing,
     );

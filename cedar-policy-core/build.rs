@@ -32,6 +32,7 @@ fn generate_parsers() {
         .process_dir("src/validator/cedar_schema/")
         .expect("failed to run lalrpop");
 
+    #[cfg(feature = "cedar-entity-syntax")]
     lalrpop::Configuration::new()
         .process_dir("src/entities/cedar_syntax/")
         .expect("failed to run lalrpop");
