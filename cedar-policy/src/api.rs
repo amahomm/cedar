@@ -880,8 +880,8 @@ impl Entities {
     /// against it, returning an error if they do not conform.
     ///
     /// ## Errors
-    /// - [`CedarEntitiesError::SyntaxError`] if the input has syntax errors
-    /// - [`CedarEntitiesError::ConversionError`] if extension functions are unknown
+    /// - [`CedarEntitiesError::Syntax`] if the input has syntax errors
+    /// - [`CedarEntitiesError::Conversion`] if extension functions are unknown
     /// - [`EntitiesError::Duplicate`] if there are any duplicate entities
     /// - [`EntitiesError::InvalidEntity`] if `schema` is provided and entities do not conform
     #[cfg(feature = "cedar-entity-syntax")]
@@ -894,11 +894,11 @@ impl Entities {
 
         // Parse the Cedar entity syntax
         let ast = cedar_syntax::parser::parse_entities(src)
-            .map_err(|e| CedarEntitiesError::SyntaxError(e))?;
+            .map_err(|e| CedarEntitiesError::Syntax(e))?;
 
         // Convert AST to entities
         let entity_vec = cedar_syntax::to_entities::cedar_entities_to_entities(ast, extensions)
-            .map_err(|e| CedarEntitiesError::ConversionError(e))?;
+            .map_err(|e| CedarEntitiesError::Conversion(e))?;
 
         // Construct Entities with TC computation and optional schema validation
         let schema = schema.map(|s| cedar_policy_core::validator::CoreSchema::new(&s.0));
@@ -909,7 +909,7 @@ impl Entities {
             extensions,
         )
         .map(Entities)
-        .map_err(|e| CedarEntitiesError::EntitiesError(e))
+        .map_err(|e| CedarEntitiesError::Entities(e))
     }
 
     /// Is entity `a` an ancestor of entity `b`?

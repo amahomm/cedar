@@ -312,7 +312,7 @@ pub enum ConversionError {
 /// A collection of conversion errors
 #[derive(Debug, Diagnostic, Error)]
 #[error("entity data conversion failed with {} error(s)", .0.len())]
-pub struct ConversionErrors(pub Vec<ConversionError>);
+pub struct ConversionErrors(pub(crate) Vec<ConversionError>);
 
 impl ConversionErrors {
     /// Create from a vec of errors (must be non-empty)

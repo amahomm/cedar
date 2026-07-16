@@ -73,17 +73,17 @@ pub enum CedarEntitiesError {
     /// Syntax error during parsing
     #[error("error parsing Cedar entity data syntax")]
     #[diagnostic(transparent)]
-    SyntaxError(#[from] cedar_policy_core::entities::cedar_syntax::err::ParseErrors),
+    Syntax(#[from] cedar_policy_core::entities::cedar_syntax::err::ParseErrors),
 
     /// Error during AST → Entities conversion
     #[error("error converting Cedar entity data")]
     #[diagnostic(transparent)]
-    ConversionError(#[from] cedar_policy_core::entities::cedar_syntax::err::ConversionErrors),
+    Conversion(#[from] cedar_policy_core::entities::cedar_syntax::err::ConversionErrors),
 
     /// Error constructing the Entities collection (duplicates, schema conformance, etc.)
     #[error(transparent)]
     #[diagnostic(transparent)]
-    EntitiesError(#[from] cedar_policy_core::entities::err::EntitiesError),
+    Entities(#[from] cedar_policy_core::entities::err::EntitiesError),
 }
 
 /// Error type for formatting entities to Cedar syntax
