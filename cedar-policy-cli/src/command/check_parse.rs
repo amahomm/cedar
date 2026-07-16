@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-use std::{path::PathBuf, str::FromStr};
+use std::str::FromStr;
 
 use cedar_policy::Expression;
 use clap::Args;
 use miette::Report;
 
-use crate::{load_entities, CedarExitCode, EntitiesFormat, OptionalPoliciesArgs, OptionalSchemaArgs, PoliciesArgs};
+use crate::{CedarExitCode, OptionalEntitiesArgs, OptionalPoliciesArgs, OptionalSchemaArgs, PoliciesArgs};
 
 #[derive(Args, Debug)]
 pub struct CheckParseArgs {
@@ -33,13 +33,9 @@ pub struct CheckParseArgs {
     /// Schema args (incorporated by reference)
     #[command(flatten)]
     pub schema: OptionalSchemaArgs,
-    /// File containing a Cedar entity hierarchy
-    #[arg(long = "entities", value_name = "FILE")]
-    pub entities_file: Option<PathBuf>,
-    /// Entities format
-    #[cfg(feature = "cedar-entity-syntax")]
-    #[arg(long, value_enum, default_value_t)]
-    pub entities_format: EntitiesFormat,
+    /// Entities args (incorporated by reference)
+    #[command(flatten)]
+    pub entities: OptionalEntitiesArgs,
 }
 
 pub fn check_parse(args: &CheckParseArgs) -> CedarExitCode {
@@ -47,7 +43,7 @@ pub fn check_parse(args: &CheckParseArgs) -> CedarExitCode {
     // are provided, read policies from stdin and check that they parse
     if args.policies.policies_file.is_none()
         && args.schema.schema_file.is_none()
-        && args.entities_file.is_none()
+        && args.entities.entities_file.is_none()
         && args.expression.is_none()
     {
         let pargs = PoliciesArgs {
@@ -89,19 +85,7 @@ pub fn check_parse(args: &CheckParseArgs) -> CedarExitCode {
             None
         }
     };
-    if let Some(e) = args
-        .entities_file
-        .as_ref()
-        .and_then(|e| {
-            let format = {
-                #[cfg(feature = "cedar-entity-syntax")]
-                { args.entities_format }
-                #[cfg(not(feature = "cedar-entity-syntax"))]
-                { EntitiesFormat::default() }
-            };
-            load_entities(e, format, schema.as_ref()).err()
-        })
-    {
+    if let Some(e) = args.entities.get_entities(schema.as_ref()).err() {
         println!("{e:?}");
         exit_code = CedarExitCode::Failure;
     }

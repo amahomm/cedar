@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//! AST types for the Cedar entity data syntax (RFC 104)
+//! AST types for the Cedar entity data syntax
 
 use std::collections::BTreeMap;
 

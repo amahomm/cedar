@@ -863,7 +863,7 @@ impl Entities {
         eparser.from_json_file(json).map(Entities)
     }
 
-    /// Parse entities from the Cedar entity data syntax (RFC 104).
+    /// Parse entities from the Cedar entity data syntax.
     ///
     /// This provides a human-readable alternative to the JSON entity format.
     /// Example input:
@@ -966,7 +966,7 @@ impl Entities {
         self.0.to_json_value()
     }
 
-    /// Format entities as Cedar entity data syntax text (RFC 104).
+    /// Format entities as Cedar entity data syntax text.
     ///
     /// This is the inverse of [`Self::from_cedar_str()`].
     /// The produced text can be re-parsed with `from_cedar_str()` to get

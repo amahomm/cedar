@@ -16,27 +16,17 @@
 
 use clap::Args;
 
-use crate::{load_entities, CedarExitCode, EntitiesFormat};
+use crate::{CedarExitCode, EntitiesArgs};
 
 #[derive(Args, Debug)]
 pub struct VisualizeArgs {
-    /// File containing a Cedar entity hierarchy
-    #[arg(long = "entities", value_name = "FILE")]
-    pub entities_file: String,
-    /// Entities format
-    #[cfg(feature = "cedar-entity-syntax")]
-    #[arg(long, value_enum, default_value_t)]
-    pub entities_format: EntitiesFormat,
+    /// Entities args (incorporated by reference)
+    #[command(flatten)]
+    pub entities: EntitiesArgs,
 }
 
 pub fn visualize(args: &VisualizeArgs) -> CedarExitCode {
-    let format = {
-        #[cfg(feature = "cedar-entity-syntax")]
-        { args.entities_format }
-        #[cfg(not(feature = "cedar-entity-syntax"))]
-        { EntitiesFormat::default() }
-    };
-    match load_entities(&args.entities_file, format, None) {
+    match args.entities.get_entities(None) {
         Ok(entities) => {
             println!("{}", entities.to_dot_str());
             CedarExitCode::Success

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//! Parser for entity data in the Cedar syntax (RFC 104)
+//! Parser for entity data in the Cedar syntax
 
 pub mod ast;
 pub mod err;

@@ -715,91 +715,22 @@ mod test_pairs {
     fn assert_cedar_matches_json(cedar_src: &str, json_src: &str) {
         let extensions = Extensions::all_available();
 
-        // Parse Cedar
+        // Parse Cedar entity syntax
         let ast = parse_entities(cedar_src)
             .unwrap_or_else(|e| panic!("Cedar parse failed:\n{e}"));
         let entity_vec = cedar_entities_to_entities(ast, extensions)
-            .unwrap_or_else(|e| panic!("Conversion failed:\n{e}"));
-        let cedar_entities = Entities::from_entities(
-            entity_vec,
-            None::<&NoEntitiesSchema>,
-            TCComputation::ComputeNow,
-            extensions,
-        )
-        .unwrap_or_else(|e| panic!("Entities construction failed:\n{e}"));
+            .unwrap_or_else(|e| panic!("Cedar entity conversion failed:\n{e}"));
+        let cedar_entities =
+            Entities::from_entities(entity_vec, None::<&NoEntitiesSchema>, TCComputation::ComputeNow, extensions)
+                .unwrap_or_else(|e| panic!("Entities construction failed:\n{e}"));
 
-        // Parse JSON
-        let json_parser: EntityJsonParser<'_, '_> =
-            EntityJsonParser::new(None, extensions, TCComputation::ComputeNow);
-        let json_entities = json_parser
+        // Parse JSON entities
+        let eparser = EntityJsonParser::new(None::<&NoEntitiesSchema>, extensions, TCComputation::ComputeNow);
+        let json_entities = eparser
             .from_json_str(json_src)
             .unwrap_or_else(|e| panic!("JSON parse failed:\n{e:?}"));
 
-        // Compare entity count
-        let cedar_count = cedar_entities.iter().count();
-        let json_count = json_entities.iter().count();
-        assert_eq!(
-            cedar_count, json_count,
-            "Entity count mismatch: Cedar={cedar_count}, JSON={json_count}"
-        );
-
-        // Compare each entity by UID
-        for json_entity in json_entities.iter() {
-            let uid = json_entity.uid();
-            let cedar_entity = match cedar_entities.entity(uid) {
-                crate::entities::Dereference::Data(e) => e,
-                _ => panic!("Entity {uid} missing from Cedar parse"),
-            };
-
-            // Compare direct parents (ancestors includes TC, but parents should be the same)
-            let json_parents: std::collections::BTreeSet<_> =
-                json_entity.ancestors().collect();
-            let cedar_parents: std::collections::BTreeSet<_> =
-                cedar_entity.ancestors().collect();
-            assert_eq!(
-                cedar_parents, json_parents,
-                "Ancestors differ for {uid}:\n  Cedar: {cedar_parents:?}\n  JSON: {json_parents:?}"
-            );
-
-            // Compare attributes by checking that all attr keys match and have same type
-            let json_attr_keys: std::collections::BTreeSet<_> =
-                json_entity.keys().collect();
-            let cedar_attr_keys: std::collections::BTreeSet<_> =
-                cedar_entity.keys().collect();
-            assert_eq!(
-                cedar_attr_keys, json_attr_keys,
-                "Attribute keys differ for {uid}:\n  Cedar: {cedar_attr_keys:?}\n  JSON: {json_attr_keys:?}"
-            );
-
-            // Compare each attribute value
-            for key in json_attr_keys.iter() {
-                let json_val = json_entity.get(key).unwrap();
-                let cedar_val = cedar_entity.get(key).unwrap();
-                assert_eq!(
-                    cedar_val, json_val,
-                    "Attribute '{key}' differs for {uid}:\n  Cedar: {cedar_val:?}\n  JSON: {json_val:?}"
-                );
-            }
-
-            // Compare tags
-            let json_tag_keys: std::collections::BTreeSet<_> =
-                json_entity.tag_keys().collect();
-            let cedar_tag_keys: std::collections::BTreeSet<_> =
-                cedar_entity.tag_keys().collect();
-            assert_eq!(
-                cedar_tag_keys, json_tag_keys,
-                "Tag keys differ for {uid}:\n  Cedar: {cedar_tag_keys:?}\n  JSON: {json_tag_keys:?}"
-            );
-
-            for key in json_tag_keys.iter() {
-                let json_val = json_entity.get_tag(key).unwrap();
-                let cedar_val = cedar_entity.get_tag(key).unwrap();
-                assert_eq!(
-                    cedar_val, json_val,
-                    "Tag '{key}' differs for {uid}:\n  Cedar: {cedar_val:?}\n  JSON: {json_val:?}"
-                );
-            }
-        }
+        assert_eq!(cedar_entities, json_entities);
     }
 
     macro_rules! test_pair {

@@ -57,7 +57,7 @@ pub mod entities_errors {
     pub use cedar_policy_core::entities::err::{Duplicate, EntitiesError, TransitiveClosureError};
 }
 
-/// Errors related to parsing entities from Cedar syntax (RFC 104)
+/// Errors related to parsing entities from Cedar syntax
 #[cfg(feature = "cedar-entity-syntax")]
 pub mod cedar_entities_errors {
     pub use cedar_policy_core::entities::cedar_syntax::err::{

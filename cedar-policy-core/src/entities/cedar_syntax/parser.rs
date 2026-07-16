@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-//! Parser for Cedar entity data syntax (RFC 104)
+//! Parser for Cedar entity data syntax
 
 use std::sync::{Arc, LazyLock};
 

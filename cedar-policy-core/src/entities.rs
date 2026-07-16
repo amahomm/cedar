@@ -22,7 +22,7 @@ use crate::transitive_closure::{compute_tc, enforce_tc_and_dag, repair_tc};
 use std::collections::{hash_map, HashMap, HashSet};
 use std::sync::Arc;
 
-/// Module for parsing entity data in the Cedar syntax (RFC 104)
+/// Module for parsing entity data in the Cedar syntax
 #[cfg(feature = "cedar-entity-syntax")]
 pub mod cedar_syntax;
 /// Module for checking that entities conform with a schema

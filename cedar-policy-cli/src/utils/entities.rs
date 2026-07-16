@@ -14,38 +14,100 @@
  * limitations under the License.
  */
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use cedar_policy::{Entities, Schema};
-use clap::ValueEnum;
+use clap::{Args, ValueEnum};
 use miette::{IntoDiagnostic, Result, WrapErr};
 
 /// Format for entity data files
+/// JSON is default for backward compatibility.
 #[derive(Debug, Default, Clone, Copy, ValueEnum)]
 pub enum EntitiesFormat {
-    /// Cedar entity data syntax (RFC 104)
-    #[cfg(feature = "cedar-entity-syntax")]
-    Cedar,
     /// JSON entity format
     #[default]
     Json,
+    /// Cedar entity data syntax
+    #[cfg(feature = "cedar-entity-syntax")]
+    Cedar,
 }
 
-/// Load an `Entities` object from the given filename, format, and optional schema.
-///
-/// If format is `Json`, parses as JSON. If format is `Cedar`, parses as
-/// Cedar entity data syntax.
-pub(crate) fn load_entities(
-    entities_filename: impl AsRef<Path>,
+/// This struct contains the arguments that together specify an input entity hierarchy.
+#[derive(Args, Debug)]
+pub struct EntitiesArgs {
+    /// File containing a Cedar entity hierarchy
+    #[arg(long = "entities", value_name = "FILE")]
+    pub entities_file: PathBuf,
+    /// Entities format
+    #[cfg(feature = "cedar-entity-syntax")]
+    #[arg(long, value_enum, default_value_t)]
+    pub entities_format: EntitiesFormat,
+}
+
+impl EntitiesArgs {
+    /// Turn this `EntitiesArgs` into the appropriate `Entities` object
+    pub(crate) fn get_entities(&self, schema: Option<&Schema>) -> Result<Entities> {
+        let format = self.format();
+        load_entities(&self.entities_file, format, schema)
+    }
+
+    fn format(&self) -> EntitiesFormat {
+        #[cfg(feature = "cedar-entity-syntax")]
+        {
+            self.entities_format
+        }
+        #[cfg(not(feature = "cedar-entity-syntax"))]
+        {
+            EntitiesFormat::default()
+        }
+    }
+}
+
+/// This struct contains the arguments that together specify an input entity hierarchy,
+/// for commands where the entities file is optional.
+#[derive(Args, Debug)]
+pub struct OptionalEntitiesArgs {
+    /// File containing a Cedar entity hierarchy
+    #[arg(long = "entities", value_name = "FILE")]
+    pub entities_file: Option<PathBuf>,
+    /// Entities format
+    #[cfg(feature = "cedar-entity-syntax")]
+    #[arg(long, value_enum, default_value_t)]
+    pub entities_format: EntitiesFormat,
+}
+
+impl OptionalEntitiesArgs {
+    /// Turn this `OptionalEntitiesArgs` into the appropriate `Entities` object, or empty
+    pub(crate) fn get_entities(&self, schema: Option<&Schema>) -> Result<Option<Entities>> {
+        let Some(entities_file) = &self.entities_file else {
+            return Ok(None);
+        };
+        let format = self.format();
+        load_entities(entities_file, format, schema).map(Some)
+    }
+
+    fn format(&self) -> EntitiesFormat {
+        #[cfg(feature = "cedar-entity-syntax")]
+        {
+            self.entities_format
+        }
+        #[cfg(not(feature = "cedar-entity-syntax"))]
+        {
+            EntitiesFormat::default()
+        }
+    }
+}
+
+fn load_entities(
+    path: impl AsRef<Path>,
     format: EntitiesFormat,
     schema: Option<&Schema>,
 ) -> Result<Entities> {
-    let path = entities_filename.as_ref();
-
+    let path = path.as_ref();
     match format {
+        EntitiesFormat::Json => load_json_entities(path, schema),
         #[cfg(feature = "cedar-entity-syntax")]
         EntitiesFormat::Cedar => load_cedar_entities(path, schema),
-        EntitiesFormat::Json => load_json_entities(path, schema),
     }
 }
 
